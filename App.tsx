@@ -6,6 +6,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import FullPlayerScreen from './src/screens/FullPlayerScreen';
 import FavouritesScreen from './src/screens/FavouritesScreen';
+import AlbumScreen from './src/screens/AlbumScreen';
 import MiniPlayer from './src/components/MiniPlayer';
 import BottomBar, { BOTTOM_BAR_HEIGHT } from './src/components/BottomBar';
 
@@ -35,6 +36,7 @@ export default function App() {
           <Stack.Screen name="Search" component={SearchScreen} />
           <Stack.Screen name="FullPlayer" component={FullPlayerScreen} />
           <Stack.Screen name="Favourites" component={FavouritesScreen} />
+          <Stack.Screen name="Album" component={AlbumScreen} />
         </Stack.Navigator>
 
         <MiniPlayer

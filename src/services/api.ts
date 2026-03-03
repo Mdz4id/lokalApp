@@ -28,8 +28,9 @@ export const getTrendingAlbums = async (query:string = 'Gangster') => {
 
 export const getAlbumDetails = async (albumId: string) => {
   try {
-    const response = await axios.get(`${BASE_URL}/api/albums/`,{
-        params: { id: albumId }
+    
+    const response = await axios.get(`${BASE_URL}/api/albums`,{
+        params: {id:albumId} 
     });
     return response.data.success ? response.data.data : null;
   } catch (error) {

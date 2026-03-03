@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, Text, FlatList, Image, TouchableOpacity, 
+import {
+  View, Text, FlatList, Image, TouchableOpacity,
   StyleSheet, ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,14 +11,12 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 const getUrl = (resources: Resource[]) => {
-  const item = resources?.[resources.length - 1]; // Get highest quality [cite: 58, 78, 119]
+  const item = resources?.[resources.length - 1];
   return item?.url || item?.link || '';
 };
 
-
 const HomeScreen = () => {
-    const navigation = useNavigation();
-  // Access the "Brain" 
+  const navigation = useNavigation();
   const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
   const recentlyPlayed = usePlayerStore((state) => state.recentlyPlayed);
   const loadHistory = usePlayerStore((state) => state.loadHistory);
@@ -26,41 +24,35 @@ const HomeScreen = () => {
     artists: [],
     mostPlayed: [],
   });
+
   useEffect(() => {
-  const setup = async () => {
-    const store = usePlayerStore.getState();
-    await store.initAudio(); // Initialize audio settings
-    await store.loadHistory(); // Load your AsyncStorage history
-  };
-  
-  setup();
-}, []);
+    const setup = async () => {
+      const store = usePlayerStore.getState();
+      await store.initAudio();
+      await store.loadHistory();
+    };
+    setup();
+  }, []);
 
-useEffect(() => {
-  const initHome = async () => {
-    // Load local history first [cite: 143]
-    await loadHistory();
-    
-    // Then fetch remote API data
-    const [artistData, albumData] = await Promise.all([
-      getArtists('A'),
-      getTrendingAlbums('HINDI')
-    ]);
+  useEffect(() => {
+    const initHome = async () => {
+      await loadHistory();
+      const [artistData, albumData] = await Promise.all([
+        getArtists('A'),
+        getTrendingAlbums('HINDI')
+      ]);
+      setApiSections({
+        artists: artistData,
+        mostPlayed: albumData,
+      });
+    };
+    initHome();
+  }, []);
 
-    setApiSections({
-      artists: artistData,
-      mostPlayed: albumData,
-    });
-  };
-
-  initHome();
-}, []);
-
-  // Helper to structure sections for the .map() loop 
   const displaySections = [
     { title: "Recently Played", data: recentlyPlayed, type: 'song' },
     { title: "Artists", data: apiSections.artists, type: 'artist' },
-    { title: "Albums ", data: apiSections.mostPlayed, type: 'album' }
+    { title: "Albums", data: apiSections.mostPlayed, type: 'album' }
   ];
 
   const renderAlbumCard = (sectionType: string) => ({ item }: { item: Song }) => {
@@ -70,7 +62,7 @@ useEffect(() => {
       } else if (sectionType === 'artist') {
         console.log('clicked artist:', item);
       } else {
-        console.log('clicked album:', item);
+        navigation.navigate('Album' as never, { albumId: item.id } as never);
       }
     };
     return (
@@ -85,7 +77,9 @@ useEffect(() => {
   };
 
   const renderArtistCard = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.artistCard} onPress={() => console.log('clicked artist:', item)}>
+    <TouchableOpacity style={styles.artistCard} onPress={() => {
+      console.log('clicked artist:', item);
+    }}>
       <Image source={{ uri: getUrl(item.image) }} style={styles.artistImage} />
       <Text style={styles.artistName} numberOfLines={1}>{item.name || item.title}</Text>
     </TouchableOpacity>
@@ -107,7 +101,7 @@ useEffect(() => {
               <Text style={styles.sectionTitle}>{section.title}</Text>
               <TouchableOpacity><Text style={styles.seeAll}></Text></TouchableOpacity>
             </View>
-            
+
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -122,57 +116,31 @@ useEffect(() => {
   );
 };
 
-// ... keep your existing styles
 const styles = StyleSheet.create({
-
   container: { flex: 1, backgroundColor: '#FFF' },
-
-  header: { 
-
-    flexDirection: 'row', 
-
-    justifyContent: 'space-between', 
-
-    padding: 20, 
-
-    alignItems: 'center' 
-
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    alignItems: 'center'
   },
-
   logoText: { fontSize: 28, fontWeight: 'bold', color: '#000' },
-
   sectionContainer: { marginBottom: 25 },
-
-  sectionHeader: { 
-
-    flexDirection: 'row', 
-
-    justifyContent: 'space-between', 
-
-    paddingHorizontal: 20, 
-
-    marginBottom: 15 
-
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 15
   },
-
   sectionTitle: { fontSize: 20, fontWeight: 'bold' },
-
   seeAll: { color: '#FF7A00', fontWeight: '600' },
-
   albumCard: { width: 160, marginLeft: 20 },
-
   albumArt: { width: 160, height: 160, borderRadius: 20 },
-
   songTitle: { marginTop: 10, fontWeight: 'bold', fontSize: 14 },
-
   artistSubtitle: { color: '#666', fontSize: 12 },
-
   artistCard: { alignItems: 'center', marginLeft: 20, width: 110 },
-
   artistImage: { width: 110, height: 110, borderRadius: 55 },
-
   artistName: { marginTop: 8, fontWeight: '500' }
-
 });
 
 export default HomeScreen;
