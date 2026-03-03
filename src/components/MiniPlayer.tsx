@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { usePlayerStore } from '../store/usePlayerStore';
 
 const getUrl = (resources?: { url?: string; link?: string }[]) => {
@@ -11,9 +12,10 @@ const getUrl = (resources?: { url?: string; link?: string }[]) => {
 interface MiniPlayerProps {
   hidden?: boolean;
   onOpenFullPlayer: () => void;
+  bottomOffset?: number;
 }
 
-const MiniPlayer = ({ hidden = false, onOpenFullPlayer }: MiniPlayerProps) => {
+const MiniPlayer = ({ hidden = false, onOpenFullPlayer, bottomOffset = 0 }: MiniPlayerProps) => {
   const insets = useSafeAreaInsets();
   const currentSong = usePlayerStore((state) => state.currentSong);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
@@ -22,7 +24,7 @@ const MiniPlayer = ({ hidden = false, onOpenFullPlayer }: MiniPlayerProps) => {
   if (!currentSong || hidden) return null;
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View style={[styles.wrapper, { bottom: bottomOffset, paddingBottom: Math.max(insets.bottom, 8) }]}>
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.infoTapArea}
@@ -44,7 +46,12 @@ const MiniPlayer = ({ hidden = false, onOpenFullPlayer }: MiniPlayerProps) => {
           style={styles.playButton}
           onPress={togglePlayPause}
         >
-          <Text style={styles.playButtonText}>{isPlaying ? '❚❚' : '▶'}</Text>
+          <Ionicons
+            name={isPlaying ? 'pause' : 'play'}
+            size={18}
+            color="#FFF"
+            style={{ marginLeft: isPlaying ? 0 : 2 }}
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -64,7 +71,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#111',
-    borderRadius: 12,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
@@ -102,11 +110,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#222',
   },
-  playButtonText: {
-    color: '#FFF',
-    fontWeight: '700',
-    fontSize: 14,
-  },
+
 });
 
 export default MiniPlayer;

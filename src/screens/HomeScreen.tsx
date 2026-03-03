@@ -8,6 +8,7 @@ import { usePlayerStore } from '../store/usePlayerStore';
 import { getArtists, getTrendingAlbums } from '../services/api';
 import { Song, Resource } from '../types/music';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 const getUrl = (resources: Resource[]) => {
   const item = resources?.[resources.length - 1]; // Get highest quality [cite: 58, 78, 119]
@@ -42,8 +43,8 @@ useEffect(() => {
     
     // Then fetch remote API data
     const [artistData, albumData] = await Promise.all([
-      getArtists('Popular'),
-      getTrendingAlbums()
+      getArtists('A'),
+      getTrendingAlbums('HINDI')
     ]);
 
     setApiSections({
@@ -57,23 +58,34 @@ useEffect(() => {
 
   // Helper to structure sections for the .map() loop 
   const displaySections = [
-    { title: "Recently Played", data: recentlyPlayed, type: 'album' },
+    { title: "Recently Played", data: recentlyPlayed, type: 'song' },
     { title: "Artists", data: apiSections.artists, type: 'artist' },
     { title: "Albums ", data: apiSections.mostPlayed, type: 'album' }
   ];
 
-  const renderAlbumCard = ({ item }: { item: Song }) => (
-    <TouchableOpacity style={styles.albumCard} onPress={() => setCurrentSong(item)}>
-      <Image source={{ uri: getUrl(item.image) }} style={styles.albumArt} />
-      <Text style={styles.songTitle} numberOfLines={1}>{item.name }</Text>
-      <Text style={styles.artistSubtitle} numberOfLines={1}>
-        {item.artists?.primary?.[0]?.name  || 'Unknown'}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderAlbumCard = (sectionType: string) => ({ item }: { item: Song }) => {
+    const handlePress = () => {
+      if (sectionType === 'song') {
+        setCurrentSong(item);
+      } else if (sectionType === 'artist') {
+        console.log('clicked artist:', item);
+      } else {
+        console.log('clicked album:', item);
+      }
+    };
+    return (
+      <TouchableOpacity style={styles.albumCard} onPress={handlePress}>
+        <Image source={{ uri: getUrl(item.image) }} style={styles.albumArt} />
+        <Text style={styles.songTitle} numberOfLines={1}>{item.name}</Text>
+        <Text style={styles.artistSubtitle} numberOfLines={1}>
+          {item.artists?.primary?.[0]?.name || 'Unknown'}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   const renderArtistCard = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.artistCard}>
+    <TouchableOpacity style={styles.artistCard} onPress={() => console.log('clicked artist:', item)}>
       <Image source={{ uri: getUrl(item.image) }} style={styles.artistImage} />
       <Text style={styles.artistName} numberOfLines={1}>{item.name || item.title}</Text>
     </TouchableOpacity>
@@ -84,7 +96,7 @@ useEffect(() => {
       <View style={styles.header}>
         <Text style={styles.logoText}>Mume</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Search' as never)}>
-          <Text style={{fontSize: 24}}>🔍</Text>
+          <Ionicons name="search" size={24} color="#111" />
         </TouchableOpacity>
       </View>
 
@@ -93,7 +105,7 @@ useEffect(() => {
           <View key={index} style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{section.title}</Text>
-              <TouchableOpacity><Text style={styles.seeAll}>See All</Text></TouchableOpacity>
+              <TouchableOpacity><Text style={styles.seeAll}></Text></TouchableOpacity>
             </View>
             
             <FlatList
@@ -101,7 +113,7 @@ useEffect(() => {
               showsHorizontalScrollIndicator={false}
               data={section.data}
               keyExtractor={(item, idx) => item.id?.toString() || idx.toString()}
-              renderItem={section.type === "artist" ? renderArtistCard : renderAlbumCard}
+              renderItem={section.type === "artist" ? renderArtistCard : renderAlbumCard(section.type)}
             />
           </View>
         ))}

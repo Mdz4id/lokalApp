@@ -8,10 +8,14 @@ interface PlayerState {
   isPlaying: boolean;
   soundObj: Audio.Sound | null;
   recentlyPlayed: Song[];
+  favourites: Song[];
   setCurrentSong: (song: Song) => Promise<void>;
   togglePlayPause: () => Promise<void>;
   loadHistory: () => Promise<void>;
   initAudio: () => Promise<void>;
+  addToFavourites: (song: Song) => Promise<void>;
+  removeFromFavourites: (songId: string) => Promise<void>;
+  loadFavourites: () => Promise<void>;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -19,6 +23,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isPlaying: false,
   soundObj: null,
   recentlyPlayed: [],
+  favourites: [],
 
   // Requirement: Queue/History persisted locally [cite: 143]
   loadHistory: async () => {
@@ -83,5 +88,25 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     isPlaying ? await soundObj.pauseAsync() : await soundObj.playAsync();
     set({ isPlaying: !isPlaying });
   },
-  
+
+  loadFavourites: async () => {
+    const stored = await AsyncStorage.getItem('favourites');
+    if (stored) set({ favourites: JSON.parse(stored) });
+  },
+
+  addToFavourites: async (song: Song) => {
+    const { favourites } = get();
+    if (favourites.find(s => s.id === song.id)) return; // already saved
+    const updated = [song, ...favourites];
+    set({ favourites: updated });
+    await AsyncStorage.setItem('favourites', JSON.stringify(updated));
+  },
+
+  removeFromFavourites: async (songId: string) => {
+    const { favourites } = get();
+    const updated = favourites.filter(s => s.id !== songId);
+    set({ favourites: updated });
+    await AsyncStorage.setItem('favourites', JSON.stringify(updated));
+  },
+
 }));

@@ -10,6 +10,7 @@ import {
   PanResponder,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { usePlayerStore } from '../store/usePlayerStore';
 
@@ -31,6 +32,10 @@ const FullPlayerScreen = () => {
   const soundObj = usePlayerStore((state) => state.soundObj);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const togglePlayPause = usePlayerStore((state) => state.togglePlayPause);
+  const favourites = usePlayerStore((state) => state.favourites);
+  const addToFavourites = usePlayerStore((state) => state.addToFavourites);
+  const removeFromFavourites = usePlayerStore((state) => state.removeFromFavourites);
+  const loadFavourites = usePlayerStore((state) => state.loadFavourites);
 
   const [positionMillis, setPositionMillis] = useState(0);
   const [durationMillis, setDurationMillis] = useState(1);
@@ -38,6 +43,18 @@ const FullPlayerScreen = () => {
   const [isScrubbing, setIsScrubbing] = useState(false);
   const dragStartRatioRef = useRef(0);
   const dragRatioRef = useRef(0);
+
+  useEffect(() => {
+    loadFavourites();
+    console.log("Favourites Are", favourites);
+  }, []);
+
+  const isFavourited = currentSong ? !!favourites.find(s => s.id === currentSong.id) : false;
+
+  const handleFavouriteToggle = () => {
+    if (!currentSong) return;
+    isFavourited ? removeFromFavourites(currentSong.id) : addToFavourites(currentSong);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -122,7 +139,7 @@ const FullPlayerScreen = () => {
     return (
       <SafeAreaView style={styles.emptyContainer}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Back</Text>
+          <Ionicons name="arrow-back" size={28} color="#111" />
         </TouchableOpacity>
         <Text style={styles.emptyText}>No song selected</Text>
       </SafeAreaView>
@@ -133,7 +150,14 @@ const FullPlayerScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>←</Text>
+          <Ionicons name="chevron-down" size={32} color="#111" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleFavouriteToggle}>
+          <Ionicons
+            name={isFavourited ? 'heart' : 'heart-outline'}
+            size={28}
+            color={isFavourited ? '#E0334C' : '#111'}
+          />
         </TouchableOpacity>
       </View>
 
@@ -165,15 +189,20 @@ const FullPlayerScreen = () => {
 
       <View style={styles.controlsRow}>
         <TouchableOpacity style={styles.seekButton} onPress={() => seekBy(-10000)}>
-          <Text style={styles.seekText}>-10</Text>
+          <MaterialIcons name="replay-10" size={40} color="#111" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.playButton} onPress={togglePlayPause}>
-          <Text style={styles.playText}>{isPlaying ? '❚❚' : '▶'}</Text>
+          <Ionicons
+            name={isPlaying ? 'pause' : 'play'}
+            size={40}
+            color="#FFF"
+            style={{ marginLeft: isPlaying ? 0 : 4 }}
+          />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.seekButton} onPress={() => seekBy(10000)}>
-          <Text style={styles.seekText}>+10</Text>
+          <MaterialIcons name="forward-10" size={40} color="#111" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -188,13 +217,11 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 56,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  backText: {
-    fontSize: 28,
-    color: '#111',
-    fontWeight: '600',
-  },
+
   cover: {
     width: '100%',
     aspectRatio: 1,
@@ -257,11 +284,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  seekText: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111',
-  },
+
   playButton: {
     width: 96,
     height: 96,
@@ -274,7 +297,9 @@ const styles = StyleSheet.create({
     fontSize: 34,
     fontWeight: '700',
     color: '#FFF',
-    marginLeft: 2,
+    alignContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyContainer: {
     flex: 1,

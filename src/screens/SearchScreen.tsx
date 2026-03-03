@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { 
   View, TextInput, FlatList, Text, Image, 
   TouchableOpacity, StyleSheet
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { searchSongs } from '../services/api';
 import { usePlayerStore } from '../store/usePlayerStore';
@@ -28,14 +29,19 @@ const SearchScreen = () => {
     navigation.navigate('Home' as never);
   };
 
-  const handleSearch = async (text: string) => {
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearch = (text: string) => {
     setQuery(text);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     if (text.length > 2) {
-      const data = await searchSongs(text);
-      setResults(data);
-      return;
+      debounceRef.current = setTimeout(async () => {
+        const data = await searchSongs(text);
+        setResults(data);
+      }, 300);
+    } else {
+      setResults([]);
     }
-    setResults([]);
   };
 
   const renderItem = ({ item }: { item: Song }) => (
@@ -58,7 +64,7 @@ const SearchScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.searchBarContainer}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Text style={styles.backText}>← </Text>
+          <Ionicons name="arrow-back" size={24} color="#111" />
         </TouchableOpacity>
         <TextInput
           style={styles.searchInput}
@@ -81,8 +87,7 @@ const SearchScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF' },
   searchBarContainer: { padding: 20 },
-  backButton: { marginBottom: 8,marginTop:8, alignSelf: 'flex-start' },
-  backText: { fontSize: 22, fontWeight: '600', color: '#111' },
+  backButton: { marginBottom: 8, marginTop: 8, alignSelf: 'flex-start' },
   searchInput: {
     backgroundColor: '#F0F0F0',
     padding: 15,
