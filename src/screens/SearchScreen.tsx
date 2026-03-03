@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { 
-  View, TextInput, FlatList, Text, Image, 
+import {
+  View, TextInput, FlatList, Text, Image,
   TouchableOpacity, StyleSheet
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { searchSongs } from '../services/api';
 import { usePlayerStore } from '../store/usePlayerStore';
 import { Song } from '../types/music';
+import { useTheme, Theme } from '../theme';
 
 const getUrl = (resources?: { url?: string; link?: string }[]) => {
   const item = resources?.[resources.length - 1];
@@ -17,6 +18,9 @@ const getUrl = (resources?: { url?: string; link?: string }[]) => {
 
 const SearchScreen = () => {
   const navigation = useNavigation();
+  const theme = useTheme();
+  const styles = getStyles(theme);
+
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Song[]>([]);
   const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
@@ -45,13 +49,13 @@ const SearchScreen = () => {
   };
 
   const renderItem = ({ item }: { item: Song }) => (
-    <TouchableOpacity 
-      style={styles.resultItem} 
+    <TouchableOpacity
+      style={styles.resultItem}
       onPress={() => setCurrentSong(item)}
     >
-      <Image 
-        source={{ uri: getUrl(item.image) }} 
-        style={styles.thumbnail} 
+      <Image
+        source={{ uri: getUrl(item.image) }}
+        style={styles.thumbnail}
       />
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={1}>{item.name || item.title || 'Unknown'}</Text>
@@ -64,11 +68,12 @@ const SearchScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.searchBarContainer}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-          <Ionicons name="arrow-back" size={24} color="#111" />
+          <Ionicons name="arrow-back" size={24} color={theme.iconPrimary} />
         </TouchableOpacity>
         <TextInput
           style={styles.searchInput}
           placeholder="Search songs, artists..."
+          placeholderTextColor={theme.textMuted}
           value={query}
           onChangeText={handleSearch}
           autoFocus
@@ -78,34 +83,36 @@ const SearchScreen = () => {
         data={results}
         keyExtractor={(item, index) => item.id?.toString() || index.toString()}
         renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 100 }}
         ListEmptyComponent={<Text style={styles.emptyText}>Start typing to find music</Text>}
       />
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF' },
+const getStyles = (theme: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   searchBarContainer: { padding: 20 },
   backButton: { marginBottom: 8, marginTop: 8, alignSelf: 'flex-start' },
   searchInput: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: theme.surface,
+    color: theme.text,
     padding: 15,
     borderRadius: 10,
     fontSize: 16,
   },
-  resultItem: { 
-    flexDirection: 'row', 
-    padding: 15, 
+  resultItem: {
+    flexDirection: 'row',
+    padding: 15,
     alignItems: 'center',
     borderBottomWidth: 0.5,
-    borderBottomColor: '#EEE'
+    borderBottomColor: theme.border,
   },
   thumbnail: { width: 50, height: 50, borderRadius: 5 },
   info: { marginLeft: 15, flex: 1 },
-  title: { fontWeight: 'bold', fontSize: 16 },
-  artist: { color: '#666' },
-  emptyText: { textAlign: 'center', marginTop: 50, color: '#999' }
+  title: { fontWeight: 'bold', fontSize: 16, color: theme.text },
+  artist: { color: theme.textSecondary },
+  emptyText: { textAlign: 'center', marginTop: 50, color: theme.textMuted },
 });
 
 export default SearchScreen;

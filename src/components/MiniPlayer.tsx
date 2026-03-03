@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { usePlayerStore } from '../store/usePlayerStore';
+import { useTheme, Theme } from '../theme';
 
 const getUrl = (resources?: { url?: string; link?: string }[]) => {
   const item = resources?.[resources.length - 1];
@@ -17,6 +18,9 @@ interface MiniPlayerProps {
 
 const MiniPlayer = ({ hidden = false, onOpenFullPlayer, bottomOffset = 0 }: MiniPlayerProps) => {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
+  const styles = getStyles(theme);
+
   const currentSong = usePlayerStore((state) => state.currentSong);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
   const togglePlayPause = usePlayerStore((state) => state.togglePlayPause);
@@ -58,7 +62,7 @@ const MiniPlayer = ({ hidden = false, onOpenFullPlayer, bottomOffset = 0 }: Mini
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   wrapper: {
     position: 'absolute',
     left: 0,
@@ -70,7 +74,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#111',
+    backgroundColor: theme.miniPlayerBg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 12,
@@ -85,7 +89,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 8,
-    backgroundColor: '#333',
+    backgroundColor: theme.border,
   },
   meta: {
     flex: 1,
@@ -93,12 +97,12 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   title: {
-    color: '#FFF',
+    color: theme.miniPlayerText,
     fontWeight: '600',
     fontSize: 14,
   },
   subtitle: {
-    color: '#CFCFCF',
+    color: theme.miniPlayerSub,
     fontSize: 12,
     marginTop: 2,
   },
@@ -108,9 +112,8 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#222',
+    backgroundColor: theme.miniPlayerBtn,
   },
-
 });
 
 export default MiniPlayer;

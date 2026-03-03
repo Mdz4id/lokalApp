@@ -7,14 +7,21 @@ import SearchScreen from './src/screens/SearchScreen';
 import FullPlayerScreen from './src/screens/FullPlayerScreen';
 import FavouritesScreen from './src/screens/FavouritesScreen';
 import AlbumScreen from './src/screens/AlbumScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import MiniPlayer from './src/components/MiniPlayer';
 import BottomBar, { BOTTOM_BAR_HEIGHT } from './src/components/BottomBar';
+import { useThemeStore } from './src/store/useThemeStore';
 
 const Stack = createNativeStackNavigator();
 const navigationRef = createNavigationContainerRef();
 
 export default function App() {
   const [activeRoute, setActiveRoute] = React.useState<string>('Home');
+  const loadTheme = useThemeStore((state) => state.loadTheme);
+
+  React.useEffect(() => {
+    loadTheme();
+  }, []);
 
   const syncActiveRoute = () => {
     const route = navigationRef.getCurrentRoute();
@@ -37,6 +44,7 @@ export default function App() {
           <Stack.Screen name="FullPlayer" component={FullPlayerScreen} />
           <Stack.Screen name="Favourites" component={FavouritesScreen} />
           <Stack.Screen name="Album" component={AlbumScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
         </Stack.Navigator>
 
         <MiniPlayer

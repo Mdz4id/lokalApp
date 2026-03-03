@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { usePlayerStore } from '../store/usePlayerStore';
+import { useTheme, Theme } from '../theme';
 
 const getUrl = (resources?: { url?: string; link?: string }[]) => {
   const item = resources?.[resources.length - 1];
@@ -28,6 +29,9 @@ const formatMs = (ms: number) => {
 
 const FullPlayerScreen = () => {
   const navigation = useNavigation();
+  const theme = useTheme();
+  const styles = getStyles(theme);
+
   const currentSong = usePlayerStore((state) => state.currentSong);
   const soundObj = usePlayerStore((state) => state.soundObj);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
@@ -46,7 +50,6 @@ const FullPlayerScreen = () => {
 
   useEffect(() => {
     loadFavourites();
-    console.log("Favourites Are", favourites);
   }, []);
 
   const isFavourited = currentSong ? !!favourites.find(s => s.id === currentSong.id) : false;
@@ -139,7 +142,7 @@ const FullPlayerScreen = () => {
     return (
       <SafeAreaView style={styles.emptyContainer}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color="#111" />
+          <Ionicons name="arrow-back" size={28} color={theme.iconPrimary} />
         </TouchableOpacity>
         <Text style={styles.emptyText}>No song selected</Text>
       </SafeAreaView>
@@ -150,13 +153,13 @@ const FullPlayerScreen = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-down" size={32} color="#111" />
+          <Ionicons name="chevron-down" size={32} color={theme.iconPrimary} />
         </TouchableOpacity>
         <TouchableOpacity onPress={handleFavouriteToggle}>
           <Ionicons
             name={isFavourited ? 'heart' : 'heart-outline'}
             size={28}
-            color={isFavourited ? '#E0334C' : '#111'}
+            color={isFavourited ? '#E0334C' : theme.iconPrimary}
           />
         </TouchableOpacity>
       </View>
@@ -189,7 +192,7 @@ const FullPlayerScreen = () => {
 
       <View style={styles.controlsRow}>
         <TouchableOpacity style={styles.seekButton} onPress={() => seekBy(-10000)}>
-          <MaterialIcons name="replay-10" size={40} color="#111" />
+          <MaterialIcons name="replay-10" size={40} color={theme.iconPrimary} />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.playButton} onPress={togglePlayPause}>
@@ -202,17 +205,17 @@ const FullPlayerScreen = () => {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.seekButton} onPress={() => seekBy(10000)}>
-          <MaterialIcons name="forward-10" size={40} color="#111" />
+          <MaterialIcons name="forward-10" size={40} color={theme.iconPrimary} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: Theme) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.surface,
     paddingHorizontal: 20,
   },
   header: {
@@ -221,12 +224,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-
   cover: {
     width: '100%',
     aspectRatio: 1,
     borderRadius: 24,
-    backgroundColor: '#DDD',
+    backgroundColor: theme.border,
     marginTop: 12,
   },
   title: {
@@ -234,24 +236,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 34,
     fontWeight: '700',
-    color: '#111',
+    color: theme.text,
   },
   artist: {
     marginTop: 8,
     textAlign: 'center',
     fontSize: 18,
-    color: '#555',
+    color: theme.textSecondary,
   },
   progressTrack: {
     marginTop: 28,
     height: 10,
-    backgroundColor: '#DDD',
+    backgroundColor: theme.progressTrack,
     borderRadius: 8,
     overflow: 'visible',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FF982D',
+    backgroundColor: theme.accent,
   },
   seekThumb: {
     position: 'absolute',
@@ -259,7 +261,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#FF982D',
+    backgroundColor: theme.accent,
   },
   timeRow: {
     marginTop: 10,
@@ -268,7 +270,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 15,
-    color: '#333',
+    color: theme.text,
     fontWeight: '500',
   },
   controlsRow: {
@@ -284,33 +286,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
   playButton: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: '#FF982D',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playText: {
-    fontSize: 34,
-    fontWeight: '700',
-    color: '#FFF',
-    alignContent: 'center',
+    backgroundColor: theme.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyContainer: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.surface,
     paddingHorizontal: 20,
     paddingTop: 20,
   },
   emptyText: {
     marginTop: 24,
     fontSize: 18,
-    color: '#444',
+    color: theme.textSecondary,
   },
 });
 
