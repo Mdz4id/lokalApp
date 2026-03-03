@@ -8,9 +8,11 @@ import FullPlayerScreen from './src/screens/FullPlayerScreen';
 import FavouritesScreen from './src/screens/FavouritesScreen';
 import AlbumScreen from './src/screens/AlbumScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import QueueScreen from './src/screens/QueueScreen';
 import MiniPlayer from './src/components/MiniPlayer';
 import BottomBar, { BOTTOM_BAR_HEIGHT } from './src/components/BottomBar';
 import { useThemeStore } from './src/store/useThemeStore';
+import { usePlayerStore } from './src/store/usePlayerStore';
 
 const Stack = createNativeStackNavigator();
 const navigationRef = createNavigationContainerRef();
@@ -18,9 +20,11 @@ const navigationRef = createNavigationContainerRef();
 export default function App() {
   const [activeRoute, setActiveRoute] = React.useState<string>('Home');
   const loadTheme = useThemeStore((state) => state.loadTheme);
+  const loadQueue = usePlayerStore((state) => state.loadQueue);
 
   React.useEffect(() => {
     loadTheme();
+    loadQueue();
   }, []);
 
   const syncActiveRoute = () => {
@@ -45,6 +49,7 @@ export default function App() {
           <Stack.Screen name="Favourites" component={FavouritesScreen} />
           <Stack.Screen name="Album" component={AlbumScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Queue" component={QueueScreen} />
         </Stack.Navigator>
 
         <MiniPlayer

@@ -9,6 +9,7 @@ interface PlayerState {
   soundObj: Audio.Sound | null;
   recentlyPlayed: Song[];
   favourites: Song[];
+  queue: Song[];
   setCurrentSong: (song: Song) => Promise<void>;
   togglePlayPause: () => Promise<void>;
   loadHistory: () => Promise<void>;
@@ -16,6 +17,11 @@ interface PlayerState {
   addToFavourites: (song: Song) => Promise<void>;
   removeFromFavourites: (songId: string) => Promise<void>;
   loadFavourites: () => Promise<void>;
+  addToQueue: (song: Song) => Promise<void>;
+  removeFromQueue: (songId: string) => Promise<void>;
+  reorderQueue: (fromIndex: number, toIndex: number) => Promise<void>;
+  loadQueue: () => Promise<void>;
+  playFromQueue: (song: Song) => Promise<void>;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -24,6 +30,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   soundObj: null,
   recentlyPlayed: [],
   favourites: [],
+  queue: [],
 
   // Requirement: Queue/History persisted locally [cite: 143]
   loadHistory: async () => {
@@ -107,6 +114,41 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const updated = favourites.filter(s => s.id !== songId);
     set({ favourites: updated });
     await AsyncStorage.setItem('favourites', JSON.stringify(updated));
+  },
+
+  loadQueue: async () => {
+    const stored = await AsyncStorage.getItem('queue');
+    if (stored) set({ queue: JSON.parse(stored) });
+  },
+
+  addToQueue: async (song: Song) => {
+    const { queue } = get();
+    if (queue.find(s => s.id === song.id)) return;
+    const updated = [...queue, song];
+    set({ queue: updated });
+    await AsyncStorage.setItem('queue', JSON.stringify(updated));
+  },
+
+  removeFromQueue: async (songId: string) => {
+    const { queue } = get();
+    const updated = queue.filter(s => s.id !== songId);
+    set({ queue: updated });
+    await AsyncStorage.setItem('queue', JSON.stringify(updated));
+  },
+
+  reorderQueue: async (fromIndex: number, toIndex: number) => {
+    const { queue } = get();
+    const updated = [...queue];
+    const [item] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, item);
+    set({ queue: updated });
+    await AsyncStorage.setItem('queue', JSON.stringify(updated));
+  },
+
+  playFromQueue: async (song: Song) => {
+    const { removeFromQueue, setCurrentSong } = get();
+    await removeFromQueue(song.id);
+    await setCurrentSong(song);
   },
 
 }));

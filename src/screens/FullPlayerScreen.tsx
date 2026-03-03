@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Pressable,
   LayoutChangeEvent,
   PanResponder,
 } from 'react-native';
@@ -47,6 +46,7 @@ const FullPlayerScreen = () => {
   const [isScrubbing, setIsScrubbing] = useState(false);
   const dragStartRatioRef = useRef(0);
   const dragRatioRef = useRef(0);
+  const progressRatioRef = useRef(0);
 
   useEffect(() => {
     loadFavourites();
@@ -83,7 +83,9 @@ const FullPlayerScreen = () => {
 
   const progressRatio = useMemo(() => {
     if (!durationMillis) return 0;
-    return Math.min(1, Math.max(0, positionMillis / durationMillis));
+    const r = Math.min(1, Math.max(0, positionMillis / durationMillis));
+    progressRatioRef.current = r;
+    return r;
   }, [positionMillis, durationMillis]);
 
   const onTrackLayout = (event: LayoutChangeEvent) => {
@@ -109,6 +111,9 @@ const FullPlayerScreen = () => {
     return Math.max(0, Math.min(trackWidth - 18, rawLeft));
   }, [progressRatio, trackWidth]);
 
+  // PanResponder sits on the thumb only (Spotify-style drag).
+  // progressRatioRef keeps the latest ratio without being a dep,
+  // so the responder is never recreated mid-drag.
   const panResponder = useMemo(
     () =>
       PanResponder.create({
@@ -116,8 +121,8 @@ const FullPlayerScreen = () => {
         onMoveShouldSetPanResponder: () => true,
         onPanResponderGrant: () => {
           setIsScrubbing(true);
-          dragStartRatioRef.current = progressRatio;
-          dragRatioRef.current = progressRatio;
+          dragStartRatioRef.current = progressRatioRef.current;
+          dragRatioRef.current = progressRatioRef.current;
         },
         onPanResponderMove: (_, gestureState) => {
           const ratio = Math.max(0, Math.min(1, dragStartRatioRef.current + gestureState.dx / trackWidth));
@@ -135,7 +140,7 @@ const FullPlayerScreen = () => {
           await seekToRatio(ratio);
         },
       }),
-    [durationMillis, progressRatio, trackWidth]
+    [durationMillis, trackWidth]
   );
 
   if (!currentSong) {
@@ -155,13 +160,18 @@ const FullPlayerScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-down" size={32} color={theme.iconPrimary} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleFavouriteToggle}>
-          <Ionicons
-            name={isFavourited ? 'heart' : 'heart-outline'}
-            size={28}
-            color={isFavourited ? '#E0334C' : theme.iconPrimary}
-          />
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity onPress={() => navigation.navigate('Queue' as never)}>
+            <Ionicons name="list-outline" size={26} color={theme.iconPrimary} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleFavouriteToggle}>
+            <Ionicons
+              name={isFavourited ? 'heart' : 'heart-outline'}
+              size={28}
+              color={isFavourited ? '#E0334C' : theme.iconPrimary}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Image source={{ uri: getUrl(currentSong.image) }} style={styles.cover} />
@@ -173,17 +183,12 @@ const FullPlayerScreen = () => {
         {currentSong.artists?.primary?.map((item) => item.name).join(', ') || 'Unknown Artist'}
       </Text>
 
-      <Pressable
-        style={styles.progressTrack}
-        onLayout={onTrackLayout}
-        onPress={(event) => seekToRatio(event.nativeEvent.locationX / trackWidth)}
-      >
+      <View style={styles.progressTrack} onLayout={onTrackLayout}>
         <View style={[styles.progressFill, { width: `${progressRatio * 100}%` }]} />
-        <View
-          style={[styles.seekThumb, { left: thumbLeft }]}
-          {...panResponder.panHandlers}
-        />
-      </Pressable>
+        <View style={[styles.seekThumbHitArea, { left: thumbLeft - 14 }]} {...panResponder.panHandlers}>
+          <View style={styles.seekThumb} />
+        </View>
+      </View>
 
       <View style={styles.timeRow}>
         <Text style={styles.timeText}>{formatMs(positionMillis)}</Text>
@@ -224,6 +229,11 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
   cover: {
     width: '100%',
     aspectRatio: 1,
@@ -255,9 +265,16 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     height: '100%',
     backgroundColor: theme.accent,
   },
-  seekThumb: {
+  // Large transparent hit area so the thumb is easy to grab
+  seekThumbHitArea: {
     position: 'absolute',
-    top: -5,
+    top: -18,
+    width: 46,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  seekThumb: {
     width: 18,
     height: 18,
     borderRadius: 9,
