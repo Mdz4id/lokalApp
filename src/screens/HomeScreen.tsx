@@ -70,7 +70,7 @@ useEffect(() => {
       } else if (sectionType === 'artist') {
         console.log('clicked artist:', item);
       } else {
-        console.log('clicked album:', item);
+        navigation.navigate('Album' as never, { albumId: item.id } as never);
       }
     };
     return (
@@ -85,7 +85,10 @@ useEffect(() => {
   };
 
   const renderArtistCard = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.artistCard} onPress={() => console.log('clicked artist:', item)}>
+    <TouchableOpacity style={styles.artistCard} onPress={()=>{
+        console.log('clicked artist:', item);
+
+    }}>
       <Image source={{ uri: getUrl(item.image) }} style={styles.artistImage} />
       <Text style={styles.artistName} numberOfLines={1}>{item.name || item.title}</Text>
     </TouchableOpacity>
@@ -159,9 +162,9 @@ const styles = StyleSheet.create({
 
   seeAll: { color: '#FF7A00', fontWeight: '600' },
 
-  albumCard: { width: 160, marginLeft: 20 },
+  albumCard: { width: 160, marginLeft: 18},
 
-  albumArt: { width: 160, height: 160, borderRadius: 20 },
+  albumArt: { width: 140, height: 140, borderRadius: 20 },
 
   songTitle: { marginTop: 10, fontWeight: 'bold', fontSize: 14 },
 
