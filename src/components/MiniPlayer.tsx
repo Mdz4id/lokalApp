@@ -67,7 +67,6 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 0,
     paddingHorizontal: 12,
     backgroundColor: 'transparent',
   },
@@ -79,6 +78,7 @@ const getStyles = (theme: Theme) => StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 12,
     paddingVertical: 10,
+    bottom:3
   },
   infoTapArea: {
     flex: 1,

@@ -6,10 +6,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { getAlbumDetails } from '../services/api';
+import { getPlaylistDetails } from '../services/api';
 import { usePlayerStore } from '../store/usePlayerStore';
 import { Resource, Song } from '../types/music';
 import { useTheme, Theme } from '../theme';
+import { SearchStackParamList } from '../types/navigation';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 const getUrl = (resources: Resource[]) => {
   const item = resources?.[resources.length - 1];
@@ -22,51 +24,50 @@ const formatDuration = (seconds: number) => {
   return `${m}:${s.toString().padStart(2, '0')}`;
 };
 
-const AlbumScreen = () => {
-  const navigation = useNavigation();
+const PlaylistScreen = () => {
+  const navigation = useNavigation<NativeStackNavigationProp<SearchStackParamList>>();
   const route = useRoute();
-  const { albumId } = route.params as { albumId: string };
-  const setCurrentSong = usePlayerStore((state) => state.setCurrentSong);
-  const addToQueue = usePlayerStore((state) => state.addToQueue);
-  const [album, setAlbum] = useState<any>(null);
+  const { playlistId, playlistName } = route.params as { playlistId: string; playlistName?: string };
+
+  const setCurrentSong = usePlayerStore((s) => s.setCurrentSong);
+  const addToQueue = usePlayerStore((s) => s.addToQueue);
+
+  const [playlist, setPlaylist] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
   const theme = useTheme();
   const styles = getStyles(theme);
 
   useEffect(() => {
-    getAlbumDetails(albumId).then((data) => {
-      setAlbum(data);
+    getPlaylistDetails(playlistId).then((data) => {
+      setPlaylist(data);
       setLoading(false);
     });
-  }, [albumId]);
+  }, [playlistId]);
 
   if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={theme.accent} style={styles.loader} />
-      </SafeAreaView>
-    );
-  }
-
-  if (!album) {
     return (
       <SafeAreaView style={styles.container}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={28} color={theme.iconPrimary} />
         </TouchableOpacity>
-        <Text style={styles.errorText}>Album not found.</Text>
+        <ActivityIndicator size="large" color={theme.accent} style={styles.loader} />
       </SafeAreaView>
     );
   }
 
-  const primaryArtists = album.artists?.primary?.map((a: any) => a.name).join(', ') || 'Unknown';
-  const songs: Song[] = album.songs ?? [];
+  if (!playlist) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={28} color={theme.iconPrimary} />
+        </TouchableOpacity>
+        <Text style={styles.errorText}>Playlist not found.</Text>
+      </SafeAreaView>
+    );
+  }
 
-  const handlePlayAll = () => {
-    if (songs.length === 0) return;
-    setCurrentSong(songs[0]);
-    songs.slice(1).forEach((song) => addToQueue(song));
-  };
+  const songs: Song[] = playlist.songs ?? [];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -81,20 +82,38 @@ const AlbumScreen = () => {
         contentContainerStyle={{ paddingBottom: 120 }}
         ListHeaderComponent={
           <View style={styles.header}>
-            <Image source={{ uri: getUrl(album.image) }} style={styles.albumArt} />
-            <Text style={styles.albumName}>{album.name}</Text>
-            <Text style={styles.artistNames}>{primaryArtists}</Text>
+            <Image source={{ uri: getUrl(playlist.image) }} style={styles.coverArt} />
+            <Text style={styles.playlistName}>{playlist.name || playlistName}</Text>
+            {!!playlist.description && (
+              <Text style={styles.description} numberOfLines={2}>
+                {playlist.description}
+              </Text>
+            )}
             <Text style={styles.meta}>
-              {album.year} · {album.language} · {album.songCount} song{album.songCount !== 1 ? 's' : ''}
+              {playlist.songCount ?? songs.length} song{(playlist.songCount ?? songs.length) !== 1 ? 's' : ''}
             </Text>
-            <TouchableOpacity style={styles.playAllBtn} onPress={handlePlayAll}>
-              <Ionicons name="play" size={18} color="#FFF" style={{ marginLeft: 2 }} />
-              <Text style={styles.playAllText}>Play All</Text>
-            </TouchableOpacity>
+
+            {songs.length > 0 && (
+              <TouchableOpacity
+                style={styles.playAllBtn}
+                onPress={() => {
+                  setCurrentSong(songs[0]);
+                  songs.slice(1).forEach((song) => addToQueue(song));
+                }}
+              >
+                <Ionicons name="play" size={18} color="#FFF" style={{ marginLeft: 2 }} />
+                <Text style={styles.playAllText}>Play All</Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
         renderItem={({ item, index }) => (
-          <TouchableOpacity style={styles.songRow} onPress={() => setCurrentSong(item)}>
+          <TouchableOpacity
+            style={styles.songRow}
+            onPress={() => setCurrentSong(item)}
+            onLongPress={() => addToQueue(item)}
+            delayLongPress={350}
+          >
             <Text style={styles.trackNum}>{index + 1}</Text>
             <Image source={{ uri: getUrl(item.image) }} style={styles.songThumb} />
             <View style={styles.songInfo}>
@@ -117,9 +136,9 @@ const getStyles = (theme: Theme) => StyleSheet.create({
   backButton: { padding: 16, paddingBottom: 4 },
   errorText: { padding: 20, color: theme.textSecondary },
   header: { alignItems: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 24 },
-  albumArt: { width: 220, height: 220, borderRadius: 16, marginBottom: 16 },
-  albumName: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 6, color: theme.text },
-  artistNames: { fontSize: 14, color: theme.textSecondary, textAlign: 'center', marginBottom: 4 },
+  coverArt: { width: 220, height: 220, borderRadius: 16, marginBottom: 16, backgroundColor: theme.border },
+  playlistName: { fontSize: 22, fontWeight: 'bold', textAlign: 'center', marginBottom: 6, color: theme.text },
+  description: { fontSize: 13, color: theme.textSecondary, textAlign: 'center', marginBottom: 4, paddingHorizontal: 12 },
   meta: { fontSize: 12, color: theme.textMuted, marginBottom: 16 },
   playAllBtn: {
     flexDirection: 'row',
@@ -132,15 +151,19 @@ const getStyles = (theme: Theme) => StyleSheet.create({
   },
   playAllText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
   songRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.border,
   },
   trackNum: { width: 24, fontSize: 13, color: theme.textMuted, textAlign: 'center' },
-  songThumb: { width: 48, height: 48, borderRadius: 8, marginHorizontal: 12 },
+  songThumb: { width: 48, height: 48, borderRadius: 8, marginHorizontal: 12, backgroundColor: theme.border },
   songInfo: { flex: 1 },
   songName: { fontSize: 14, fontWeight: '600', color: theme.text },
   songArtist: { fontSize: 12, color: theme.textMuted, marginTop: 2 },
   duration: { fontSize: 12, color: theme.textMuted, marginLeft: 8 },
 });
 
-export default AlbumScreen;
+export default PlaylistScreen;

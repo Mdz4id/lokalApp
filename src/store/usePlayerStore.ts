@@ -60,12 +60,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const { initAudio } = get();
     await initAudio();
 
- 
     const { soundObj, recentlyPlayed } = get();
-    
-    // 1. Handle Audio Cleanup
+
+    // 1. Handle Audio Cleanup — stop then unload; clear state immediately so
+    //    nothing can interact with the stale instance while the new sound loads.
     if (soundObj) {
-      await soundObj.unloadAsync();
+      try { await soundObj.stopAsync(); } catch (_) {}
+      try { await soundObj.unloadAsync(); } catch (_) {}
+      set({ soundObj: null, isPlaying: false });
     }
 
     // 2. Update Recently Played (Local Persistence) [cite: 143]

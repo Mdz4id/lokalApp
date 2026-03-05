@@ -3,32 +3,32 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, Theme } from '../theme';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 export const BOTTOM_BAR_HEIGHT = 60;
 
-interface BottomBarProps {
-  activeRoute: string;
-  onNavigate: (route: string) => void;
-}
-
-type Tab = {
+type TabConfig = {
   route: string;
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   activeIcon: keyof typeof Ionicons.glyphMap;
 };
 
-const TABS: Tab[] = [
+const TABS: TabConfig[] = [
   { route: 'Home',       label: 'Home',       icon: 'home-outline',      activeIcon: 'home' },
   { route: 'Search',     label: 'Search',     icon: 'search-outline',    activeIcon: 'search' },
   { route: 'Favourites', label: 'Favourites', icon: 'heart-outline',     activeIcon: 'heart' },
   { route: 'Settings',   label: 'Settings',   icon: 'settings-outline',  activeIcon: 'settings' },
 ];
 
-const BottomBar = ({ activeRoute, onNavigate }: BottomBarProps) => {
+// Receives standard BottomTabBarProps from the Tab navigator —
+// no more manual activeRoute/onNavigate props needed.
+const BottomBar = ({ state, navigation }: BottomTabBarProps) => {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const styles = getStyles(theme);
+
+  const activeRoute = state.routes[state.index].name;
 
   return (
     <View style={[styles.wrapper, { paddingBottom: Math.max(insets.bottom, 8) }]}>
@@ -38,7 +38,7 @@ const BottomBar = ({ activeRoute, onNavigate }: BottomBarProps) => {
           <TouchableOpacity
             key={tab.route}
             style={styles.tab}
-            onPress={() => onNavigate(tab.route)}
+            onPress={() => navigation.navigate(tab.route)}
             activeOpacity={0.7}
           >
             <Ionicons

@@ -17,6 +17,7 @@ export interface Theme {
   miniPlayerSub: string;
   progressTrack: string;
   iconPrimary: string;
+  sectionText?: string; // Optional override for section headers
 }
 
 export const lightTheme: Theme = {
@@ -24,16 +25,17 @@ export const lightTheme: Theme = {
   surface: '#F5F5F5',
   card: '#FFFFFF',
   text: '#111111',
+  sectionText:"#111111",
   textSecondary: '#555555',
   textMuted: '#999999',
   border: '#E0E0E0',
   tabBar: '#FFFFFF',
   tabInactive: '#888888',
   accent: '#FF982D',
-  miniPlayerBg: '#111111',
-  miniPlayerBtn: '#222222',
-  miniPlayerText: '#FFFFFF',
-  miniPlayerSub: '#CFCFCF',
+  miniPlayerBg: '#ffaa3ae2',
+  miniPlayerBtn: '#ff6a00',
+  miniPlayerText: '#000000',
+  miniPlayerSub: '#221b1b',
   progressTrack: '#DDDDDD',
   iconPrimary: '#111111',
 };
@@ -48,9 +50,10 @@ export const darkTheme: Theme = {
   border: '#333333',
   tabBar: '#1C1C1C',
   tabInactive: '#666666',
+  sectionText:"#FFFFFF",
   accent: '#FF982D',
-  miniPlayerBg: '#2A2A2A',
-  miniPlayerBtn: '#3A3A3A',
+  miniPlayerBg: '#2a2a2ae4',
+  miniPlayerBtn: '#666565',
   miniPlayerText: '#F0F0F0',
   miniPlayerSub: '#999999',
   progressTrack: '#444444',

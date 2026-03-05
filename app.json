@@ -14,7 +14,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {
@@ -25,7 +27,13 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": ["FOREGROUND_SERVICE", "WAKE_LOCK","MODIFY_AUDIO_SETTINGS"]
+      "permissions": [
+        "FOREGROUND_SERVICE",
+        "WAKE_LOCK",
+        "MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -38,7 +46,11 @@
           "enableBackgroundAudio": true
         }
       ]
-    ]
-
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "7f274428-f585-44eb-b6a8-898043928f0d"
+      }
+    }
   }
 }
